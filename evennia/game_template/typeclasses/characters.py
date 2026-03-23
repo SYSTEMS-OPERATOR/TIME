@@ -1,12 +1,4 @@
-"""
-Characters
-
-Characters are (by default) Objects setup to be puppeted by Accounts.
-They are what you "see" in game. The Character class in this module
-is setup to be the "default" character type created by the default
-creation commands.
-
-"""
+"""Character typeclass with template-safe defaults and breadcrumbs."""
 
 from evennia.objects.objects import DefaultCharacter
 
@@ -14,13 +6,20 @@ from .objects import ObjectParent
 
 
 class Character(ObjectParent, DefaultCharacter):
-    """
-    The Character just re-implements some of the Object's methods and hooks
-    to represent a Character entity in-game.
+    """Default playable character for the game template."""
 
-    See mygame/typeclasses/objects.py for a list of
-    properties and methods available on all Object child classes like this.
+    def at_post_puppet(self, **kwargs):
+        """Record when an account starts controlling this character."""
+        super().at_post_puppet(**kwargs)
+        self.remember_breadcrumb(
+            "character_puppeted",
+            account=getattr(getattr(self, "account", None), "key", None),
+        )
 
-    """
-
-    pass
+    def at_post_unpuppet(self, account, session=None, **kwargs):
+        """Record when control of the character ends."""
+        super().at_post_unpuppet(account, session=session, **kwargs)
+        self.remember_breadcrumb(
+            "character_unpuppeted",
+            account=getattr(account, "key", None),
+        )
