@@ -199,7 +199,7 @@ class ObjectParentTests(unittest.TestCase):
 class AccountTests(unittest.TestCase):
     """Verify account defaults without the full Evennia runtime."""
 
-    def test_account_creation_sets_profile_tagline(self):
+    def test_account_creation_records_breadcrumb(self):
         account = object.__new__(ACCOUNTS.Account)
         account.db = SimpleNamespace(profile_tagline=None)
         account.ndb = SimpleNamespace(dev_breadcrumbs=[])
@@ -211,10 +211,7 @@ class AccountTests(unittest.TestCase):
             ACCOUNTS.Account.at_account_creation(account)
 
         mocked_super.assert_called_once_with()
-        self.assertEqual(
-            account.db.profile_tagline,
-            "A newly awakened explorer of TIME-EVE.",
-        )
+        self.assertIsNone(account.db.profile_tagline)
         self.assertEqual(
             account.ndb.dev_breadcrumbs[-1]["event"],
             "account_created",

@@ -19,10 +19,11 @@ class Account(DefaultAccount):
         return trail[-1]
 
     def at_account_creation(self):
-        """Initialize persistent account defaults the template depends on."""
+        """Initialize lightweight defaults the template depends on."""
         super().at_account_creation()
-        if getattr(self.db, "profile_tagline", None) is None:
-            self.db.profile_tagline = "A newly awakened explorer of TIME-EVE."
+        # Dev Agent Breadcrumb:
+        # Avoid persistent Attribute writes during first-save bootstrap. This
+        # keeps account initialization safer across SQLite transactional paths.
         self.remember_breadcrumb(
             "account_created",
             account=getattr(self, "key", None),
