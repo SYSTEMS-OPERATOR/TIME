@@ -36,6 +36,9 @@ class _DefaultBase:
     def at_disconnect(self, reason=None, **kwargs):
         return None
 
+    def at_login(self):
+        return None
+
     def format_message(self, msg, emit=False):
         return msg
 
@@ -72,6 +75,8 @@ class TemplateModuleLoader:
                 "evennia.game_template.typeclasses"
             ),
             "evennia.game_template.commands": ModuleType("evennia.game_template.commands"),
+            "evennia.server": ModuleType("evennia.server"),
+            "evennia.server.serversession": ModuleType("evennia.server.serversession"),
         }
         stubs["evennia.objects.objects"].DefaultObject = _DefaultBase
         stubs["evennia.objects.objects"].DefaultCharacter = _DefaultBase
@@ -82,6 +87,7 @@ class TemplateModuleLoader:
         stubs["evennia.comms.comms"].DefaultChannel = _DefaultBase
         stubs["evennia.scripts.scripts"].DefaultScript = _DefaultBase
         stubs["evennia.commands.command"].Command = _DefaultBase
+        stubs["evennia.server.serversession"].ServerSession = _DefaultBase
         for name, module in stubs.items():
             sys.modules[name] = module
 
@@ -112,6 +118,26 @@ CHANNELS = TemplateModuleLoader.load_module(
 COMMANDS = TemplateModuleLoader.load_module(
     "evennia.game_template.commands.command",
     "evennia/game_template/commands/command.py",
+)
+AT_SERVER_HOOKS = TemplateModuleLoader.load_module(
+    "evennia.game_template.server.conf.at_server_startstop",
+    "evennia/game_template/server/conf/at_server_startstop.py",
+)
+AT_INITIAL_SETUP = TemplateModuleLoader.load_module(
+    "evennia.game_template.server.conf.at_initial_setup",
+    "evennia/game_template/server/conf/at_initial_setup.py",
+)
+PORTAL_PLUGINS = TemplateModuleLoader.load_module(
+    "evennia.game_template.server.conf.portal_services_plugins",
+    "evennia/game_template/server/conf/portal_services_plugins.py",
+)
+SERVER_PLUGINS = TemplateModuleLoader.load_module(
+    "evennia.game_template.server.conf.server_services_plugins",
+    "evennia/game_template/server/conf/server_services_plugins.py",
+)
+SERVERSESSION = TemplateModuleLoader.load_module(
+    "evennia.game_template.server.conf.serversession",
+    "evennia/game_template/server/conf/serversession.py",
 )
 
 
@@ -207,6 +233,61 @@ class CommandTests(unittest.TestCase):
             breadcrumbs,
             [("command_invoked", {"command": "look", "args": "at room"})],
         )
+
+
+class StartupHookTests(unittest.TestCase):
+    """Verify non-placeholder startup hooks emit breadcrumb logs."""
+
+    def test_server_hook_logs_breadcrumb(self):
+        with patch.object(AT_SERVER_HOOKS.LOGGER, "info") as mocked_log:
+            AT_SERVER_HOOKS.at_server_start()
+
+        mocked_log.assert_called_once()
+        self.assertIn("Dev Agent Breadcrumb", mocked_log.call_args.args[0])
+
+    def test_initial_setup_logs_breadcrumb(self):
+        with patch.object(AT_INITIAL_SETUP.LOGGER, "info") as mocked_log:
+            AT_INITIAL_SETUP.at_initial_setup()
+
+        mocked_log.assert_called_once()
+        self.assertIn("Dev Agent Breadcrumb", mocked_log.call_args.args[0])
+
+    def test_plugin_hooks_log_debug_breadcrumbs(self):
+        class PortalApp:
+            """Simple portal test stub."""
+
+        class ServerApp:
+            """Simple server test stub."""
+
+        portal = PortalApp()
+        server = ServerApp()
+
+        with patch.object(PORTAL_PLUGINS.LOGGER, "debug") as mocked_portal_log:
+            PORTAL_PLUGINS.start_plugin_services(portal)
+        with patch.object(SERVER_PLUGINS.LOGGER, "debug") as mocked_server_log:
+            SERVER_PLUGINS.start_plugin_services(server)
+
+        mocked_portal_log.assert_called_once()
+        mocked_server_log.assert_called_once()
+
+
+class ServerSessionTests(unittest.TestCase):
+    """Verify session breadcrumbs are captured around login/disconnect."""
+
+    def test_login_and_disconnect_append_breadcrumbs(self):
+        session = object.__new__(SERVERSESSION.ServerSession)
+        session.ndb = SimpleNamespace(dev_breadcrumbs=[])
+        session.sessid = 7
+
+        with patch.object(_DefaultBase, "at_login", return_value=None) as mocked_login:
+            SERVERSESSION.ServerSession.at_login(session)
+        with patch.object(_DefaultBase, "at_disconnect", return_value=None) as mocked_disconnect:
+            SERVERSESSION.ServerSession.at_disconnect(session, reason="bye")
+
+        mocked_login.assert_called_once_with()
+        mocked_disconnect.assert_called_once_with(reason="bye")
+        events = [entry["event"] for entry in session.ndb.dev_breadcrumbs]
+        self.assertEqual(events, ["session_login", "session_disconnect"])
 
 
 if __name__ == "__main__":
