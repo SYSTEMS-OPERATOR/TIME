@@ -8,16 +8,25 @@ class Account(DefaultAccount):
 
     def remember_breadcrumb(self, event, **details):
         """Store lightweight account flow notes on ``ndb`` for debugging."""
-        trail = list(getattr(self.ndb, "dev_breadcrumbs", []))
+        ndb = getattr(self, "ndb", None)
+        if ndb is None:
+            return None
+
+        trail_raw = getattr(ndb, "dev_breadcrumbs", None)
+        trail = list(trail_raw) if isinstance(trail_raw, (list, tuple)) else []
         trail.append({"event": event, "details": details})
-        self.ndb.dev_breadcrumbs = trail[-20:]
+        ndb.dev_breadcrumbs = trail[-20:]
+        return trail[-1]
 
     def at_account_creation(self):
         """Initialize persistent account defaults the template depends on."""
         super().at_account_creation()
         if getattr(self.db, "profile_tagline", None) is None:
             self.db.profile_tagline = "A newly awakened explorer of TIME-EVE."
-        self.remember_breadcrumb("account_created", account=getattr(self, "key", None))
+        self.remember_breadcrumb(
+            "account_created",
+            account=getattr(self, "key", None),
+        )
 
     def at_post_login(self, session=None, **kwargs):
         """Record successful logins for local debugging."""
