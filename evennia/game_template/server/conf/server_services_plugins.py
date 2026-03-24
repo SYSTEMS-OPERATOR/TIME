@@ -14,6 +14,12 @@ services are started last in the Server startup process.
 
 """
 
+from __future__ import annotations
+
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 
 def start_plugin_services(server):
     """
@@ -21,4 +27,8 @@ def start_plugin_services(server):
 
     server - a reference to the main server application.
     """
-    pass
+    # Dev Agent Breadcrumb: server plugin registration phase executed.
+    LOGGER.debug(
+        "[Dev Agent Breadcrumb] server_plugin_services_checked server=%s",
+        server.__class__.__name__,
+    )
