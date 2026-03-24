@@ -14,6 +14,18 @@ does what you expect it to.
 
 """
 
+from __future__ import annotations
+
+import logging
+from datetime import datetime, timezone
+
+LOGGER = logging.getLogger(__name__)
+
 
 def at_initial_setup():
-    pass
+    """Log first-run setup execution for easier boot diagnostics."""
+    # Dev Agent Breadcrumb: first-time initialization entrypoint.
+    LOGGER.info(
+        "[Dev Agent Breadcrumb] initial_setup_ran utc=%s",
+        datetime.now(tz=timezone.utc).isoformat(timespec="seconds"),
+    )
