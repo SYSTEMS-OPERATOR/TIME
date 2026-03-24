@@ -29,9 +29,9 @@ class ServerSession(BaseServerSession):
     This class represents a player's session and is a template for
     individual protocols to communicate with Evennia.
 
-    Each account gets one or more sessions assigned to them whenever they connect
-    to the game server. All communication between game and account goes
-    through their session(s).
+    Each account gets one or more sessions assigned whenever they connect to
+    the game server. All communication between game and account goes through
+    their session(s).
     """
 
     def _remember_session_breadcrumb(self, event: str, **details):
@@ -48,7 +48,10 @@ class ServerSession(BaseServerSession):
 
     def at_login(self):
         """Capture login transitions in Dev Agent Breadcrumbs."""
-        self._remember_session_breadcrumb("session_login", sessid=getattr(self, "sessid", None))
+        self._remember_session_breadcrumb(
+            "session_login",
+            sessid=getattr(self, "sessid", None),
+        )
         return super().at_login()
 
     def at_disconnect(self, reason=None):
