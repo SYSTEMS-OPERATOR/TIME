@@ -106,6 +106,9 @@ runs:
           # PostgreSQL runs in CI have historically been sensitive to reusing
           # stale test DB state; run with explicit verbosity for easier diagnosis.
           evennia test --settings=settings --timing --verbosity 2 evennia
+        elif [ "${{ inputs.testing-db }}" = "sqlite3" ]; then
+          # SQLite failures can otherwise be hard to diagnose from sparse output.
+          evennia test --settings=settings --keepdb --timing --verbosity 2 evennia
         else
           evennia test --settings=settings --keepdb --timing evennia
         fi
