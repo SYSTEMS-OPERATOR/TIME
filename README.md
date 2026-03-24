@@ -1,63 +1,196 @@
-# Evennia MUD/MU\* Creation System ![][logo]
-[![unittestciimg]][unittestcilink] [![Coverage Status][coverimg]][coverlink] [![Pypi Version][pypibadge]][pypilink]
+# TIME-EVE
 
+TIME-EVE is a **timeline-first world model built on Evennia**.
 
-[Evennia][homepage] is a modern library for creating [online multiplayer text
-games][wikimudpage] (MUD, MUSH, MUX, MUCK, MOO etc) in pure Python. It
-allows game creators to design and flesh out their ideas with great
-freedom.
+At its core, the project treats moments in time as addressable places. Instead of using rooms only as conventional locations, TIME-EVE establishes a **canonical temporal grid** in which each timeline node is represented by a room labeled by UTC seconds. The repo is therefore not just a generic Evennia fork; it is an Evennia-based foundation for building a navigable, extensible timeline world.
 
-Evennia does not impose a particular style, genre or game mechanic. Instead it
-solves the boring networking and basic stuff all online games need. It provides
-a framework and tools for you to build the game you want. Coding in Evennia is
-done using normal Python modules imported into the server at runtime.
+## What TIME-EVE is trying to do
 
-Evennia has [extensive documentation][docs]. It also has a very active community
-with [discussion forums][group] and a [discord server][chat] to help and support you!
+The guiding idea in `docs/ops/setup.md` is simple and strict:
 
-## Installation
+- **Canonical identity is integer UTC seconds**.
+- Timeline rooms are labeled as `UTC:<unix_seconds>`.
+- The same value is stored on the room as `room.db.utc`.
+- Optional ISO-8601 aliases can be added for readability.
+- Rooms are **not auto-created on teleport**; they are either pre-created as anchors or inserted by controlled logic.
 
-    pip install evennia
-        (windows users once: py -m evennia)
-        (note: Windows users with multiple Python versions should prefer `py -3.11` instead of `python` when creating virtual environments)
-    evennia --init mygame
-    cd mygame
-    evennia migrate
-    evennia start / stop / reload
+This makes the timeline deterministic, searchable, and upgrade-safe.
 
-See [the full installation instructions][installation] for more help.
+## Timeline model
 
-Next, browse to `http://localhost:4001` or use your third-party mud client to
-connect to `localhost`, port `4000` to see your working (if empty) game!
+The current setup plan defines a practical starting structure:
 
-![screenshot][screenshot]
-_A game website is created automatically. Connect to your Evennia game from your
-web browser as well as using traditional third-party clients_.
+1. Create **1,200 monthly anchor rooms** from January 1970 through December 2069.
+2. Link them with `prev` and `next` exits.
+3. Allow travel only to rooms that already exist.
+4. Insert new event rooms deliberately, by rewiring neighboring exits rather than generating world state implicitly.
 
-## Where to go next
+That means TIME-EVE is best understood as a **temporal navigation substrate** first, and a game/application layer second.
 
-If this piqued your interest, there is a [lengthier introduction][introduction] to read. You
-can also read our [Evennia in pictures][evenniapictures] overview. After that,
-why not check out the [Evennia Beginner tutorial][beginnertutorial].
+## Why this repo looks the way it does
 
-Welcome!
+This repository still contains the broad upstream Evennia engine, but TIME-EVE’s customization intent is concentrated in the project-facing surfaces rather than the whole engine at once.
 
+The included design notes make that split clearer:
 
-[homepage]: https://www.evennia.com
-[docs]: https://www.evennia.com/docs/latest
-[screenshot]: https://user-images.githubusercontent.com/294267/205434941-14cc4f59-7109-49f7-9d71-0ad3371b007c.jpg
-[logo]: https://raw.githubusercontent.com/evennia/evennia/refs/heads/main/evennia/web/static/website/images/evennia_logo.png
-[unittestciimg]: https://github.com/evennia/evennia/workflows/test-suite/badge.svg
-[unittestcilink]: https://github.com/evennia/evennia/actions?query=workflow%3Atest-suite
-[coverimg]: https://coveralls.io/repos/github/evennia/evennia/badge.svg?branch=main
-[coverlink]: https://coveralls.io/github/evennia/evennia?branch=main
-[pypibadge]: https://img.shields.io/pypi/v/evennia?color=blue
-[pypilink]: https://pypi.org/project/evennia/
-[introduction]: https://www.evennia.com/docs/latest/Evennia-Introduction.html
-[license]: https://www.evennia.com/docs/latest/Licensing.html
-[group]: https://github.com/evennia/evennia/discussions
-[chat]: https://discord.gg/AJJpcRUhtF
-[wikimudpage]: http://en.wikipedia.org/wiki/Multi-user_dungeon
-[evenniapictures]: https://www.evennia.com/docs/latest/Evennia-In-Pictures.html
-[beginnertutorial]: https://www.evennia.com/docs/latest/Howtos/Beginner-Tutorial/Beginner-Tutorial-Overview.html
-[installation]: https://www.evennia.com/docs/latest/Setup/Setup-Overview.html#installation-and-running
+- `BODY.md` points to the concrete runtime hooks in the game-template layer.
+- `MIND.md` describes a lightweight reasoning/observability layer built from developer breadcrumbs.
+- `SOUL.md` states the philosophy: useful defaults, graceful failure, and readable extension points.
+
+Together, those files suggest that TIME-EVE should remain understandable and inspectable while it evolves.
+
+## Functional overview of the repository
+
+```text
+TIME-EVE/
+├── README.md                     # project overview and orientation
+├── BODY.md                       # concrete runtime touchpoints
+├── MIND.md                       # reasoning / breadcrumb layer
+├── SOUL.md                       # design philosophy
+├── docs/
+│   ├── ops/
+│   │   └── setup.md              # timeline bootstrap and canonical room model
+│   ├── source/                   # user/developer docs inherited from Evennia
+│   └── pylib/                    # docs build helpers
+├── evennia/
+│   ├── game_template/            # primary customization surface for your project
+│   │   ├── commands/             # custom command sets and command behavior
+│   │   ├── server/               # project settings and server-side hooks
+│   │   ├── tests/                # project-level tests
+│   │   ├── typeclasses/          # rooms, objects, exits, accounts, scripts
+│   │   ├── web/                  # project web overrides
+│   │   └── world/                # world data, prototypes, batch content
+│   ├── commands/                 # upstream/default Evennia command system
+│   ├── contrib/                  # optional subsystems and examples
+│   ├── server/                   # engine server, portal, sessions, launcher internals
+│   ├── utils/                    # core helpers, creation/search/menu/table utilities
+│   └── web/                      # engine web stack and API
+├── bin/                          # launchers, helper scripts, rename tools
+└── .github/                      # workflows and repository automation
+```
+
+## Where to customize first
+
+If your goal is to evolve TIME-EVE rather than maintain Evennia itself, start here:
+
+### 1. `evennia/game_template/typeclasses/`
+Use this for the core behavior of timeline rooms, event objects, exits, accounts, and scripts.
+
+This is the best place to implement or refine:
+
+- timeline room metadata
+- traversal constraints
+- event insertion behavior
+- developer-visible diagnostics
+- richer descriptions of moments, states, and entities
+
+### 2. `evennia/game_template/commands/`
+Use this for commands such as:
+
+- jumping to a UTC node
+- moving forward/backward through anchors
+- inspecting timeline state
+- inserting events or markers
+- debugging chronology and links
+
+### 3. `evennia/game_template/world/`
+Use this for structured world/timeline content:
+
+- prototypes
+- seed data
+- event definitions
+- batch creation flows
+- timeline import/export utilities
+
+### 4. `evennia/game_template/server/`
+Use this for project configuration and hook-up:
+
+- settings
+- startup behavior
+- registration of custom systems
+- service integration for timeline maintenance or automation
+
+### 5. `evennia/game_template/tests/`
+Use this to lock in the timeline contract:
+
+- canonical UTC labeling
+- correct `prev` / `next` rewiring
+- no unintended room auto-creation
+- search and movement behavior
+- command and typeclass invariants
+
+## Suggested mental model
+
+A helpful way to think about the repo is in three layers:
+
+### Layer 1: Engine
+The large `evennia/` package provides networking, sessions, accounts, commands, web support, scripts, search, object creation, and persistence.
+
+### Layer 2: Project template
+`evennia/game_template/` is the intended place to shape TIME-EVE into an actual timeline application/world.
+
+### Layer 3: Project intent
+`docs/ops/setup.md`, `BODY.md`, `MIND.md`, and `SOUL.md` define what this fork is *for*:
+
+- a navigable timeline
+- controlled world insertion
+- visible, debuggable behavior
+- safe defaults for further development
+
+## Bootstrap path
+
+For the timeline bootstrap model, use `docs/ops/setup.md`.
+
+That document already defines:
+
+- the canonical room key format
+- the `room.db.utc` identity field
+- the monthly anchor generation plan
+- the `prev` / `next` linking pattern
+- a one-time `evennia shell` population script
+- an insertion rule that preserves upgrade safety
+
+In other words, `setup.md` should be treated as the operational source of truth for the initial timeline topology.
+
+## Customization roadmap
+
+A practical progression for extending TIME-EVE is:
+
+1. **Lock the temporal model**
+   - keep `UTC:<unix_seconds>` canonical
+   - keep insertion explicit
+   - keep navigation deterministic
+
+2. **Implement timeline-native commands**
+   - `goto` helpers
+   - timeline inspection commands
+   - event creation / insertion tools
+
+3. **Enrich rooms as moments**
+   - descriptions
+   - tags
+   - metadata
+   - linked entities and state snapshots
+
+4. **Add observability early**
+   - preserve breadcrumb-style debug traces
+   - expose traversal and insertion logic clearly
+
+5. **Keep engine changes deliberate**
+   - prefer customizing the game template first
+   - only modify deeper engine code when the requirement truly belongs there
+
+## Relationship to upstream Evennia
+
+TIME-EVE currently inherits the breadth of Evennia’s engine and documentation. That is useful, but the project should be read as **an opinionated temporal application built on top of that engine**, not as an unmodified general-purpose MUD starter.
+
+So the fastest way to understand the repo is:
+
+1. read this README;
+2. read `docs/ops/setup.md`;
+3. inspect `BODY.md`, `MIND.md`, and `SOUL.md`;
+4. work inside `evennia/game_template/` first.
+
+## In one sentence
+
+**TIME-EVE is an Evennia-based timeline substrate where UTC-addressed rooms form a controlled navigable chronology that can be extended into richer temporal simulation, storytelling, and world logic.**
