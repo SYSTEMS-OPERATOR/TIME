@@ -107,8 +107,9 @@ runs:
           # stale test DB state; run with explicit verbosity for easier diagnosis.
           evennia test --settings=settings --timing --verbosity 2 evennia
         elif [ "${{ inputs.testing-db }}" = "sqlite3" ]; then
-          # SQLite failures can otherwise be hard to diagnose from sparse output.
-          evennia test --settings=settings --keepdb --timing --verbosity 2 evennia
+          # SQLite's in-memory test DB does not benefit from --keepdb and can
+          # exhibit FK issues when stale state is reused across setup paths.
+          evennia test --settings=settings --timing --verbosity 2 evennia
         else
           evennia test --settings=settings --keepdb --timing evennia
         fi
