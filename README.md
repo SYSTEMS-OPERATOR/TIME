@@ -1,5 +1,7 @@
 # TIME-EVE
 
+[![template-smoke](https://github.com/SYSTEMS-OPERATOR/TIME/actions/workflows/github_action_template_smoke.yml/badge.svg)](https://github.com/SYSTEMS-OPERATOR/TIME/actions/workflows/github_action_template_smoke.yml)
+
 TIME-EVE is a **timeline-first world model built on Evennia**.
 
 At its core, the project treats moments in time as addressable places. Instead of using rooms only as conventional locations, TIME-EVE establishes a **canonical temporal grid** in which each timeline node is represented by a room labeled by UTC seconds. The repo is therefore not just a generic Evennia fork; it is an Evennia-based foundation for building a navigable, extensible timeline world.

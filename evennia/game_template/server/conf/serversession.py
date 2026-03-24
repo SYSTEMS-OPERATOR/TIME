@@ -40,7 +40,8 @@ class ServerSession(BaseServerSession):
         if ndb is None:
             return None
 
-        trail = list(getattr(ndb, "dev_breadcrumbs", []))
+        trail_raw = getattr(ndb, "dev_breadcrumbs", None)
+        trail = list(trail_raw) if isinstance(trail_raw, (list, tuple)) else []
         entry = {"event": event, "details": details}
         trail.append(entry)
         ndb.dev_breadcrumbs = trail[-20:]
