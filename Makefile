@@ -13,6 +13,7 @@ default:
 	@echo "  make test - run evennia test suite with all default values."
 	@echo "  make tests=evennia.path test - run only specific test or tests."
 	@echo "  make testp - run test suite using multiple cores."
+	@echo "  make smoke-template - run quick TIME-EVE template smoke tests + PEP 8 checks."
 	@echo "  make release - publish evennia to pypi (requires pypi credentials)
 
 install:
@@ -43,6 +44,22 @@ testp:
 	cd $(TEST_GAME_DIR);\
 	evennia migrate;\
 	evennia test --keepdb --parallel 4 $(TESTS);\
+
+smoke-template:
+	python -m pip install --upgrade pip
+	python -m pip install pycodestyle
+	python -m unittest \
+		evennia.game_template.tests.test_template_core \
+		evennia.game_template.tests.test_timeline
+	python -m pycodestyle \
+		evennia/game_template/server/conf/at_server_startstop.py \
+		evennia/game_template/server/conf/at_initial_setup.py \
+		evennia/game_template/server/conf/server_services_plugins.py \
+		evennia/game_template/server/conf/portal_services_plugins.py \
+		evennia/game_template/server/conf/serversession.py \
+		evennia/game_template/world/timeline.py \
+		evennia/game_template/tests/test_template_core.py \
+		evennia/game_template/tests/test_timeline.py
 
 version:
 	echo $(VERSION)

@@ -187,6 +187,14 @@ class ObjectParentTests(unittest.TestCase):
         self.assertEqual(len(dummy.get_breadcrumbs()), 20)
         self.assertEqual(dummy.get_breadcrumbs()[0]["details"]["index"], 5)
 
+    def test_remember_breadcrumb_handles_none_trail(self):
+        dummy = DummyParent()
+        dummy.ndb.dev_breadcrumbs = None
+
+        dummy.remember_breadcrumb("step", index=1)
+
+        self.assertEqual(dummy.get_breadcrumbs()[0]["details"]["index"], 1)
+
 
 class AccountTests(unittest.TestCase):
     """Verify account defaults without the full Evennia runtime."""
@@ -212,6 +220,15 @@ class AccountTests(unittest.TestCase):
             "account_created",
         )
 
+    def test_account_breadcrumb_handles_none_trail(self):
+        account = object.__new__(ACCOUNTS.Account)
+        account.ndb = SimpleNamespace(dev_breadcrumbs=None)
+
+        entry = ACCOUNTS.Account.remember_breadcrumb(account, "event", value=1)
+
+        self.assertEqual(entry["event"], "event")
+        self.assertEqual(account.ndb.dev_breadcrumbs[0]["details"]["value"], 1)
+
 
 class ChannelTests(unittest.TestCase):
     """Verify the channel formatting fallback."""
@@ -224,6 +241,9 @@ class ChannelTests(unittest.TestCase):
                 CHANNELS.Channel.format_message(channel, msg="ignored"),
                 "...",
             )
+
+    def test_channel_keeps_default_prefix_behavior(self):
+        self.assertFalse(hasattr(CHANNELS.Channel, "channel_prefix_string"))
 
 
 class CommandTests(unittest.TestCase):
@@ -310,6 +330,17 @@ class ServerSessionTests(unittest.TestCase):
         mocked_disconnect.assert_called_once_with(reason="bye")
         events = [entry["event"] for entry in session.ndb.dev_breadcrumbs]
         self.assertEqual(events, ["session_login", "session_disconnect"])
+
+    def test_breadcrumb_helper_handles_none_trail(self):
+        session = object.__new__(SERVERSESSION.ServerSession)
+        session.ndb = SimpleNamespace(dev_breadcrumbs=None)
+
+        entry = SERVERSESSION.ServerSession._remember_session_breadcrumb(
+            session, "sync"
+        )
+
+        self.assertEqual(entry["event"], "sync")
+        self.assertEqual(len(session.ndb.dev_breadcrumbs), 1)
 
 
 if __name__ == "__main__":
