@@ -14,6 +14,12 @@ process.
 
 """
 
+from __future__ import annotations
+
+import logging
+
+LOGGER = logging.getLogger(__name__)
+
 
 def start_plugin_services(portal):
     """
@@ -21,4 +27,8 @@ def start_plugin_services(portal):
 
     portal - a reference to the main portal application.
     """
-    pass
+    # Dev Agent Breadcrumb: portal plugin registration phase executed.
+    LOGGER.debug(
+        "[Dev Agent Breadcrumb] portal_plugin_services_checked portal=%s",
+        portal.__class__.__name__,
+    )
