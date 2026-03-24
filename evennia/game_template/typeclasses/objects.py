@@ -14,7 +14,9 @@ from typing import Any
 from evennia.objects.objects import DefaultObject
 
 _DEFAULT_OBJECT_DESC = "You see nothing special."
-_DEFAULT_ROOM_DESC = "An unfinished room waits here for a builder to describe it."
+_DEFAULT_ROOM_DESC = (
+    "An unfinished room waits here for a builder to describe it."
+)
 _BREADCRUMB_LIMIT = 20
 
 
@@ -28,7 +30,9 @@ class ObjectParent:
     * small utility hooks that are safe to inherit everywhere
     """
 
-    def remember_breadcrumb(self, event: str, **details: Any) -> dict[str, Any]:
+    def remember_breadcrumb(
+        self, event: str, **details: Any
+    ) -> dict[str, Any]:
         """Store a short runtime breadcrumb on the non-persistent handler.
 
         Args:
@@ -38,14 +42,27 @@ class ObjectParent:
         Returns:
             The breadcrumb entry that was stored.
         """
-        trail = list(getattr(self.ndb, "dev_breadcrumbs", []))
+        ndb = getattr(self, "ndb", None)
+        if ndb is None:
+            return {
+                "timestamp": datetime.now(tz=timezone.utc).isoformat(
+                    timespec="seconds"
+                ),
+                "event": event,
+                "details": details,
+            }
+
+        trail_raw = getattr(ndb, "dev_breadcrumbs", None)
+        trail = list(trail_raw) if isinstance(trail_raw, (list, tuple)) else []
         entry = {
-            "timestamp": datetime.now(tz=timezone.utc).isoformat(timespec="seconds"),
+            "timestamp": datetime.now(tz=timezone.utc).isoformat(
+                timespec="seconds"
+            ),
             "event": event,
             "details": details,
         }
         trail.append(entry)
-        self.ndb.dev_breadcrumbs = trail[-_BREADCRUMB_LIMIT:]
+        ndb.dev_breadcrumbs = trail[-_BREADCRUMB_LIMIT:]
         return entry
 
     def get_breadcrumbs(self) -> list[dict[str, Any]]:
@@ -58,7 +75,10 @@ class ObjectParent:
 
     def get_default_desc(self) -> str:
         """Return a fallback description suitable for the object's role."""
-        is_room = getattr(self, "location", None) is None and hasattr(self, "exits")
+        is_room = (
+            getattr(self, "location", None) is None
+            and hasattr(self, "exits")
+        )
         return _DEFAULT_ROOM_DESC if is_room else _DEFAULT_OBJECT_DESC
 
     def ensure_default_desc(self) -> str:
@@ -70,9 +90,11 @@ class ObjectParent:
         return desc
 
     def at_object_creation(self) -> None:
-        """Initialize template defaults the first time the object is created."""
+        """Initialize template defaults when the object is first created."""
         super().at_object_creation()
-        self.ensure_default_desc()
+        # Dev Agent Breadcrumb:
+        # Avoid writing Attributes during first-save object bootstrap. SQLite
+        # can be stricter with FK timing in transactional setup paths.
         self.remember_breadcrumb(
             "object_created",
             key=getattr(self, "key", "unknown"),
@@ -86,7 +108,7 @@ class ObjectParent:
             looker=getattr(looker, "key", None),
         )
         desc = super().get_display_desc(looker, **kwargs)
-        return desc or self.ensure_default_desc()
+        return desc or self.get_default_desc()
 
     def at_post_move(self, source_location, move_type="move", **kwargs):
         """Record movement for debugging while preserving default behavior."""
