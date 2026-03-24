@@ -8,8 +8,28 @@ on:
     branches: [main, develop]
     paths-ignore:
       - "docs/**"
+      - "evennia/game_template/**"
+      - "README.md"
+      - "MIND.md"
+      - "BODY.md"
+      - "SOUL.md"
+      - "AGENTS.md"
+      - ".github/workflows/github_action_template_smoke.yml"
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - "docs/**"
+      - "evennia/game_template/**"
+      - "README.md"
+      - "MIND.md"
+      - "BODY.md"
+      - "SOUL.md"
+      - "AGENTS.md"
+      - ".github/workflows/github_action_template_smoke.yml"
+
+concurrency:
+  group: test-suite-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-sqlite:
@@ -17,14 +37,14 @@ jobs:
     runs-on: ubuntu-latest
 
     strategy:
-      fail-fast: true
+      fail-fast: false
       matrix:
         python-version: ["3.12", "3.13", "3.14"]
         include:
           - python-version: "3.12"
             coverage-test: true
 
-    timeout-minutes: 30
+    timeout-minutes: 70
 
     steps:
       - uses: actions/checkout@v4
@@ -40,7 +60,7 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
           testing-db: sqlite3
-          coverage-test: ${{ matrix.coverage-test == true && 'true' || 'false' }}
+          coverage-test: ${{ matrix.coverage-test == true && github.event_name == 'push' && github.ref == 'refs/heads/main' && 'true' || 'false' }}
           needs-postgres-package: "false"
           needs-mysql-package: "false"
           coveralls-token: ${{ secrets.COVERALLS_REPO_TOKEN }}
