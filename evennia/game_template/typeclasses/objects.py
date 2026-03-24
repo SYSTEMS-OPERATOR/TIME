@@ -92,7 +92,9 @@ class ObjectParent:
     def at_object_creation(self) -> None:
         """Initialize template defaults when the object is first created."""
         super().at_object_creation()
-        self.ensure_default_desc()
+        # Dev Agent Breadcrumb:
+        # Avoid writing Attributes during first-save object bootstrap. SQLite
+        # can be stricter with FK timing in transactional setup paths.
         self.remember_breadcrumb(
             "object_created",
             key=getattr(self, "key", "unknown"),
@@ -106,7 +108,7 @@ class ObjectParent:
             looker=getattr(looker, "key", None),
         )
         desc = super().get_display_desc(looker, **kwargs)
-        return desc or self.ensure_default_desc()
+        return desc or self.get_default_desc()
 
     def at_post_move(self, source_location, move_type="move", **kwargs):
         """Record movement for debugging while preserving default behavior."""
