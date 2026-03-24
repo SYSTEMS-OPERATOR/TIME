@@ -8,8 +8,28 @@ on:
     branches: [main, develop]
     paths-ignore:
       - "docs/**"
+      - "evennia/game_template/**"
+      - "README.md"
+      - "MIND.md"
+      - "BODY.md"
+      - "SOUL.md"
+      - "AGENTS.md"
+      - ".github/workflows/github_action_template_smoke.yml"
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - "docs/**"
+      - "evennia/game_template/**"
+      - "README.md"
+      - "MIND.md"
+      - "BODY.md"
+      - "SOUL.md"
+      - "AGENTS.md"
+      - ".github/workflows/github_action_template_smoke.yml"
+
+concurrency:
+  group: test-suite-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   test-sqlite:
