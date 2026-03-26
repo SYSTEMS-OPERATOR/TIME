@@ -35,6 +35,10 @@ integration remains isolated from Evennia core modules.
    - Use `search_memory_sql(config, top_k, min_importance_weight=...)` for
      similarity retrieval.
    - Bind query vector consistently to every `%s::vector` placeholder.
+   - Prefer `prepare_recall_query(...)` from `rag_pipeline.py` to keep SQL and
+     payload ordering synchronized.
+   - Rank and trim retrieved memories via `rank_memories(...)` before prompt
+     injection to preserve deterministic behavior.
 
 5. **Operational hardening**
    - Add migration/management command wrappers in game-specific modules only.
@@ -57,4 +61,5 @@ integration remains isolated from Evennia core modules.
 - ✅ Deterministic SQL/payload helper layer implemented.
 - ✅ Unit tests added for helper correctness and validation behavior.
 - ✅ Architecture config normalization helpers added in `sophy_config.py`.
+- ✅ Deterministic RAG context/prompt helpers added in `rag_pipeline.py`.
 - ⏳ Runtime DB wiring into Evennia services is pending the next phase.

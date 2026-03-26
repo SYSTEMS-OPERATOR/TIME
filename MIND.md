@@ -8,6 +8,7 @@ Current implementation direction in the game template:
 - timeline helpers normalize canonical UTC room keys and anchors;
 - SOPHY embodied helpers map events into timeline dimensions (`x/y/z/t`);
 - pgvector helpers produce deterministic SQL/payloads for persistent memory;
+- RAG helpers build ranked memory context and augmented prompts for LLM use;
 - architecture config helpers normalize deployment intent into typed readiness
   gates and implementation findings.
 
