@@ -56,4 +56,5 @@ integration remains isolated from Evennia core modules.
 
 - ✅ Deterministic SQL/payload helper layer implemented.
 - ✅ Unit tests added for helper correctness and validation behavior.
+- ✅ Architecture config normalization helpers added in `sophy_config.py`.
 - ⏳ Runtime DB wiring into Evennia services is pending the next phase.

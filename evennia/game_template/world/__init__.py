@@ -1,6 +1,7 @@
 """World package for game-template helpers."""
 
 from .pgvector_memory import PgvectorMemoryConfig
+from .sophy_config import DeploymentGate, SophyArchitectureConfig
 from .sophy_embodied import DeploymentPhase, MemoryNode, TimelineCoordinate
 from .timeline import TimelineAnchor
 
@@ -9,5 +10,7 @@ __all__ = [
     "TimelineCoordinate",
     "MemoryNode",
     "DeploymentPhase",
+    "SophyArchitectureConfig",
+    "DeploymentGate",
     "PgvectorMemoryConfig",
 ]
