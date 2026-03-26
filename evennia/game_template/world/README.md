@@ -8,3 +8,8 @@ You can restructure and even rename this folder as best fits your
 sense of organisation. Just remember that if you add new sub
 directories, you must add (optionally empty) `__init__.py` files in
 them for Python to be able to find the modules within. 
+
+
+## SOPHY customization notes
+
+- PostgreSQL + pgvector integration planning and helper details live in `README_pgvector_integration.md`.
