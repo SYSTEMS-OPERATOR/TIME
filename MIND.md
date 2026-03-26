@@ -1,16 +1,29 @@
 # MIND.md
 
 ## Purpose
-TIME-EVE now has a small, explicit reasoning layer in the game template:
-- object and account lifecycle hooks initialize sensible defaults;
-- developer breadcrumbs capture recent logic flow in memory;
-- commands write lightweight execution traces to the active caller when possible.
+TIME's "mind" is the planning and recall layer that turns events into
+navigable timeline knowledge.
 
-## Logic Flow
-1. **Accounts** initialize a default profile tagline and record login lifecycle breadcrumbs.
-2. **Commands** record invocation breadcrumbs before command execution.
-3. **Objects / Rooms / Characters / Exits** record creation, movement, traversal, and display breadcrumbs.
-4. **Channels / Scripts** use safer defaults so template behavior is useful before heavy customization.
+Current implementation direction in the game template:
+- timeline helpers normalize canonical UTC room keys and anchors;
+- SOPHY embodied helpers map events into timeline dimensions (`x/y/z/t`);
+- pgvector helpers produce deterministic SQL/payloads for persistent memory;
+- architecture config helpers normalize deployment intent into typed readiness
+  gates and implementation findings.
 
-## Debugging Note
-Breadcrumbs are stored on `ndb.dev_breadcrumbs`, so they are intentionally non-persistent and safe for development.
+## Reasoning Model
+1. **Normalize inputs first** (identifiers, dimensions, architecture fields).
+2. **Generate deterministic artifacts** (room keys, SQL snippets, payloads).
+3. **Validate safety assumptions** (supported backends, phase readiness,
+   sandbox/rollback cautions).
+4. **Expose the path** through small, testable helper functions and lightweight
+   Dev Agent Breadcrumb checkpoints.
+
+## Near-Term Cognitive Priorities
+- Wire pgvector helpers into a game-template service boundary.
+- Add memory retrieval orchestration that combines temporal and semantic ranks.
+- Keep read/write contracts explicit so migrations stay predictable.
+
+## Debugging Notes
+- Prefer inspectable pure functions over hidden side effects.
+- Keep traces non-persistent by default unless audit persistence is intentional.

@@ -1,14 +1,30 @@
 # SOUL.md
 
 ## Design Intent
-TIME-EVE should feel understandable before it feels complex.
+TIME is about memory as place and history as something players can explore.
+The project should feel coherent, inspectable, and resilient as it grows from
+prototype to embodied timeline server.
 
-This repository ships a broad Evennia codebase, but the game-template layer is where a new builder first learns the project. The template should therefore:
-- do something useful immediately;
-- fail gracefully when unfinished;
-- expose its own logic flow to the next developer.
+## Project Spirit
+- **Now**: build practical foundations that run and test cleanly.
+- **Forever**: prefer designs that survive upgrades and handoffs.
+- **Always**: keep humans in the loop with transparent logic and audit trails.
 
-## Developer Philosophy
-- Prefer safe defaults over silent placeholders.
-- Prefer lightweight observability over hidden magic.
-- Prefer small, readable hooks that are easy to extend.
+## Engineering Values
+- Determinism before cleverness.
+- Safety before autonomy.
+- Explicit contracts before implicit coupling.
+- Small composable modules before monoliths.
+
+## AI Governance Posture
+SOPHY can be ambitious without becoming opaque:
+- keep operational control bounded by sandbox and rollback expectations;
+- treat self-modifying capabilities as gated features with strong observability;
+- document intent and continuation points so future developers can reason about
+  behavior quickly.
+
+## Builder Experience
+A new developer should be able to open the game-template layer and understand:
+1. what exists,
+2. why it exists,
+3. how to extend it safely.
